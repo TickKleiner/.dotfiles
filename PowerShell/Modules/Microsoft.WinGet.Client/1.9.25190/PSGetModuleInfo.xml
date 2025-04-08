@@ -15,7 +15,7 @@
       <S N="Copyright">(c) Microsoft Corporation. All rights reserved.</S>
       <DT N="PublishedDate">2024-11-01T17:12:17+03:00</DT>
       <Obj N="InstalledDate" RefId="1">
-        <DT>2024-11-11T01:04:58.6498193+03:00</DT>
+        <DT>2024-12-26T12:27:31.2837186+03:00</DT>
         <MS>
           <Obj N="DisplayHint" RefId="2">
             <TN RefId="1">
@@ -62,7 +62,19 @@
             </Obj>
           </En>
           <En>
-            <S N="Key">Command</S>
+            <S N="Key">RoleCapability</S>
+            <Ref N="Value" RefId="5" />
+          </En>
+          <En>
+            <S N="Key">Workflow</S>
+            <Ref N="Value" RefId="5" />
+          </En>
+          <En>
+            <S N="Key">DscResource</S>
+            <Ref N="Value" RefId="5" />
+          </En>
+          <En>
+            <S N="Key">Cmdlet</S>
             <Obj N="Value" RefId="6">
               <TNRef RefId="2" />
               <LST>
@@ -90,11 +102,7 @@
             </Obj>
           </En>
           <En>
-            <S N="Key">Workflow</S>
-            <Ref N="Value" RefId="5" />
-          </En>
-          <En>
-            <S N="Key">Cmdlet</S>
+            <S N="Key">Command</S>
             <Obj N="Value" RefId="7">
               <TNRef RefId="2" />
               <LST>
@@ -121,14 +129,6 @@
               </LST>
             </Obj>
           </En>
-          <En>
-            <S N="Key">DscResource</S>
-            <Ref N="Value" RefId="5" />
-          </En>
-          <En>
-            <S N="Key">RoleCapability</S>
-            <Ref N="Value" RefId="5" />
-          </En>
         </DCT>
       </Obj>
       <Nil N="PowerShellGetFormatVersion" />
@@ -151,15 +151,15 @@
           <S N="requireLicenseAcceptance">False</S>
           <S N="isLatestVersion">True</S>
           <S N="isAbsoluteLatestVersion">True</S>
-          <S N="versionDownloadCount">3344730</S>
-          <S N="downloadCount">52584242</S>
+          <S N="versionDownloadCount">21296473</S>
+          <S N="downloadCount">73172869</S>
           <S N="packageSize">24929992</S>
           <S N="published">01.11.2024 17:12:17 +03:00</S>
           <S N="created">01.11.2024 17:12:17 +03:00</S>
-          <S N="lastUpdated">10.11.2024 22:00:00 +03:00</S>
+          <S N="lastUpdated">26.12.2024 9:20:00 +03:00</S>
           <S N="tags">PSEdition_Desktop PSEdition_Core Windows WindowsPackageManager WinGet PSModule PSCmdlet_Get-WinGetVersion PSCommand_Get-WinGetVersion PSCmdlet_Find-WinGetPackage PSCommand_Find-WinGetPackage PSCmdlet_Get-WinGetPackage PSCommand_Get-WinGetPackage PSCmdlet_Get-WinGetSource PSCommand_Get-WinGetSource PSCmdlet_Install-WinGetPackage PSCommand_Install-WinGetPackage PSCmdlet_Uninstall-WinGetPackage PSCommand_Uninstall-WinGetPackage PSCmdlet_Update-WinGetPackage PSCommand_Update-WinGetPackage PSCmdlet_Get-WinGetUserSetting PSCommand_Get-WinGetUserSetting PSCmdlet_Set-WinGetUserSetting PSCommand_Set-WinGetUserSetting PSCmdlet_Test-WinGetUserSetting PSCommand_Test-WinGetUserSetting PSCmdlet_Assert-WinGetPackageManager PSCommand_Assert-WinGetPackageManager PSCmdlet_Repair-WinGetPackageManager PSCommand_Repair-WinGetPackageManager PSCmdlet_Enable-WinGetSetting PSCommand_Enable-WinGetSetting PSCmdlet_Disable-WinGetSetting PSCommand_Disable-WinGetSetting PSCmdlet_Get-WinGetSetting PSCommand_Get-WinGetSetting PSCmdlet_Add-WinGetSource PSCommand_Add-WinGetSource PSCmdlet_Remove-WinGetSource PSCommand_Remove-WinGetSource PSCmdlet_Reset-WinGetSource PSCommand_Reset-WinGetSource PSCmdlet_Export-WinGetPackage PSCommand_Export-WinGetPackage PSCmdlet_Repair-WinGetPackage PSCommand_Repair-WinGetPackage PSIncludes_Cmdlet</S>
           <S N="developmentDependency">False</S>
-          <S N="updated">2024-11-10T22:00:00Z</S>
+          <S N="updated">2024-12-26T09:20:00Z</S>
           <S N="NormalizedVersion">1.9.25190</S>
           <S N="Authors">Microsoft Corporation</S>
           <S N="IsPrerelease">false</S>
@@ -170,7 +170,7 @@
           <S N="CompanyName">Microsoft Corporation</S>
         </MS>
       </Obj>
-      <S N="InstalledLocation">D:\Users\igorn\Documents\PowerShell\Modules\Microsoft.WinGet.Client\1.9.25190</S>
+      <S N="InstalledLocation">C:\Users\user\Documents\PowerShell\Modules\Microsoft.WinGet.Client\1.9.25190</S>
     </MS>
   </Obj>
 </Objs>
