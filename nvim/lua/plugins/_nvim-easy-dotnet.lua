@@ -5,7 +5,6 @@ return {
     config = function()
       local logPath = vim.fn.stdpath("data") .. "\\easy-dotnet\\build.log"
       local dotnet = require("easy-dotnet")
-
       dotnet.setup({
         terminal = function(path, action)
           local commands = {
@@ -22,51 +21,8 @@ return {
               return "dotnet build  " .. path .. " /flp:v=q /flp:logfile=" .. logPath
             end,
           }
-
-          local function filter_warnings(line)
-            if not line:find("warning") then
-              return line:match("^(.+)%((%d+),(%d+)%)%: (.+)$")
-            end
-          end
-
-          local overseer_components = {
-            { "on_complete_dispose", timeout = 30 },
-            "default",
-            { "unique", replace = true },
-            {
-              "on_output_parse",
-              parser = {
-                diagnostics = {
-                  { "extract", filter_warnings, "filename", "lnum", "col", "text" },
-                },
-              },
-            },
-            {
-              "on_result_diagnostics_quickfix",
-              open = true,
-              close = true,
-            },
-          }
-
-          if action == "run" or action == "test" then
-            table.insert(overseer_components, { "restart_on_save", paths = { LazyVim.root.git() } })
-          end
-
-          local command = commands[action]()
-          local task = require("overseer").new_task({
-            strategy = {
-              "toggleterm",
-              use_shell = false,
-              direction = "horizontal",
-              open_on_start = false,
-            },
-            name = action,
-            cmd = command,
-            cwd = LazyVim.root.git(),
-            components = overseer_components,
-          })
-          task:start()
         end,
+        picker = "snacks",
       })
     end,
   },
@@ -89,6 +45,7 @@ return {
           -- console = "internalConsole",
         }
       end
+
       local dotnet = require("easy-dotnet")
       local debug_dll = nil
       local function ensure_dll()
@@ -99,47 +56,28 @@ return {
         debug_dll = dll
         return dll
       end
-      require("overseer").register_template({
-        name = "Build .NET App",
-        builder = function(params)
-          local logPath = vim.fn.stdpath("data") .. "\\easy-dotnet\\build.log"
-          local function filter_warnings(line)
-            if not line:find("warning") then
-              return line:match("^(.+)%((%d+),(%d+)%)%: (.+)$")
+
+      local function rebuild_project(co, path)
+        local spinner = require("easy-dotnet.ui-modules.spinner").new()
+        spinner:start_spinner("Building")
+        vim.fn.jobstart(string.format("dotnet build %s", path), {
+          on_exit = function(_, return_code)
+            if return_code == 0 then
+              spinner:stop_spinner("Built successfully")
+            else
+              spinner:stop_spinner("Build failed with exit code " .. return_code, vim.log.levels.ERROR)
+              error("Build failed")
             end
-          end
-          return {
-            name = "build",
-            cmd = "dotnet build /flp:v=q /flp:logfile=" .. logPath,
-            components = {
-              { "on_complete_dispose", timeout = 30 },
-              "default",
-              { "unique", replace = true },
-              {
-                "on_output_parse",
-                parser = {
-                  diagnostics = {
-                    { "extract", filter_warnings, "filename", "lnum", "col", "text" },
-                  },
-                },
-              },
-              {
-                "on_result_diagnostics_quickfix",
-                open = true,
-                close = true,
-              },
-            },
-            cwd = require("easy-dotnet").get_debug_dll().relative_project_path,
-          }
-        end,
-      })
+            coroutine.resume(co)
+          end,
+        })
+        coroutine.yield()
+      end
+
       for _, lang in ipairs({ "cs", "fsharp", "vb" }) do
         dap.configurations[lang] = {
           {
-            log_level = "DEBUG",
-            type = "netcoredbg",
-            justMyCode = false,
-            stopAtEntry = false,
+            type = "coreclr",
             name = "build & debug - netcoredbg",
             request = "launch",
             env = function()
@@ -148,15 +86,24 @@ return {
               return vars or nil
             end,
             program = function()
-              require("overseer").enable_dap()
               local dll = ensure_dll()
+              local co = coroutine.running()
+              rebuild_project(co, dll.project_path)
               return dll.relative_dll_path
             end,
             cwd = function()
               local dll = ensure_dll()
               return dll.relative_project_path
             end,
-            preLaunchTask = "Build .NET App",
+          },
+          {
+            type = "coreclr",
+            name = "test - netcoredbg",
+            request = "attach",
+            processId = function()
+              local res = require("easy-dotnet").experimental.start_debugging_test_project()
+              return res.process_id
+            end,
           },
           {
             type = "coreclr",
