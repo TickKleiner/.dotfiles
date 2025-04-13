@@ -24,50 +24,49 @@ if vim.g.neovide then
   vim.g.snacks_animate = false
 end
 
-require("dap").adapters.coreclr = {
-  type = "executable",
-  command = "netcoredbg",
-  args = { "--interpreter=vscode" },
-}
-
-local dap_utils = require("dap.utils")
-
-local function get_dll()
-  return coroutine.create(function(dap_run_co)
-    local items = vim.fn.globpath(vim.fn.getcwd(), "**/bin/**/Debug/**/*.dll", false, 1)
-    local opts = {
-      format_item = function(path)
-        return vim.fn.fnamemodify(path, ":t")
-      end,
-    }
-    local function cont(choice)
-      if choice == nil then
-        return nil
-      else
-        coroutine.resume(dap_run_co, choice)
-      end
-    end
-
-    vim.ui.select(items, opts, cont)
-  end)
-end
-
-require("dap").configurations.cs = {
-  {
-    type = "coreclr",
-    name = "launch dll - netcoredbg",
-    request = "launch",
-    cwd = "${workspaceFolder}",
-    program = get_dll,
-    args = {},
-  },
-  {
-    type = "coreclr",
-    name = "attach - netcoredbg",
-    request = "attach",
-    processId = function()
-      return dap_utils.pick_process()
-    end,
-    stopOnEntry = true,
-  },
-}
+--   type = "executable",
+--   command = "netcoredbg",
+--   args = { "--interpreter=vscode" },
+-- }
+--
+-- local dap_utils = require("dap.utils")
+--
+-- local function get_dll()
+--   return coroutine.create(function(dap_run_co)
+--     local items = vim.fn.globpath(vim.fn.getcwd(), "**/bin/**/Debug/**/*.dll", false, 1)
+--     local opts = {
+--       format_item = function(path)
+--         return vim.fn.fnamemodify(path, ":t")
+--       end,
+--     }
+--     local function cont(choice)
+--       if choice == nil then
+--         return nil
+--       else
+--         coroutine.resume(dap_run_co, choice)
+--       end
+--     end
+--
+--     vim.ui.select(items, opts, cont)
+--   end)
+-- end
+--
+-- require("dap").configurations.cs = {
+--   {
+--     type = "coreclr",
+--     name = "launch dll - netcoredbg",
+--     request = "launch",
+--     cwd = "${workspaceFolder}",
+--     program = get_dll,
+--     args = {},
+--   },
+--   {
+--     type = "coreclr",
+--     name = "attach - netcoredbg",
+--     request = "attach",
+--     processId = function()
+--       return dap_utils.pick_process()
+--     end,
+--     stopOnEntry = true,
+--   },
+-- }
