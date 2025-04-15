@@ -35,6 +35,20 @@ map("v", "<A-Up>", ":<C-u>execute \"'<,'>move '<-\" . (v:count1 + 1)<cr>gv=gv", 
 map("n", "<S-Tab>", "<cmd>bprevious<cr>", { desc = "Prev Buffer" })
 map("n", "<Tab>", "<cmd>bnext<cr>", { desc = "Next Buffer" })
 
+-- zk
+local wk = require("which-key")
+wk.add({
+  { "<leader>z", group = "notes" }, -- group
+})
+map("n", "<leader>zb", "<cmd>ZkBacklinks<cr>", { desc = "Backlink picker" })
+map("n", "<leader>zd", "<cmd>ZkCd<cr>", { desc = "Change directory" })
+map("n", "<leader>zl", "<cmd>ZkLinks<cr>", { desc = "Link picker" })
+map("n", "<leader>zm", "<cmd>ZkFullTextSearch<cr>", { desc = "Search (FTS)" })
+map("n", "<leader>zn", "<cmd>ZkNew { title = vim.fn.input('Title: ')}<cr>", { desc = "New note" })
+map("n", "<leader>zr", "<cmd>ZkIndex<cr>", { desc = "Refresh index" })
+map("n", "<leader>zs", "<cmd>ZkNotes { sort = { 'created' } }<cr>", { desc = "Search" })
+map("n", "<leader>zt", "<cmd>ZkTags<cr>", { desc = "Tags" })
+
 -- native snippets. only needed on < 0.11, as 0.11 creates these by default
 if vim.fn.has("nvim-0.11") == 0 then
   del("s", "<Tab>")
