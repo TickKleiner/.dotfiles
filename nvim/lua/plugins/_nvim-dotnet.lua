@@ -3,25 +3,48 @@ return {
     "GustavEikaas/easy-dotnet.nvim",
     dependencies = { "nvim-lua/plenary.nvim", "folke/snacks.nvim" },
     config = function()
-      local logPath = vim.fn.stdpath("data") .. "\\easy-dotnet\\build.log"
+      local function get_secret_path(secret_guid)
+        if require("easy-dotnet.extensions").isWindows() then
+          return vim.fn.expand("~") .. "\\AppData\\Roaming\\Microsoft\\UserSecrets\\" .. secret_guid .. "\\secrets.json"
+        else
+          return vim.fn.expand("~") .. "/.microsoft/usersecrets/" .. secret_guid .. "/secrets.json"
+        end
+      end
+      local function get_log_path()
+        if require("easy-dotnet.extensions").isWindows() then
+          return vim.fn.stdpath("data") .. "\\easy-dotnet\\build.log"
+        else
+          return vim.fn.stdpath("data") .. "/easy-dotnet/build.log"
+        end
+      end
       local dotnet = require("easy-dotnet")
       dotnet.setup({
-        terminal = function(path, action)
+        ---@param action "test" | "restore" | "build" | "run"
+        terminal = function(path, action, args)
           local commands = {
             run = function()
-              return "dotnet run --project " .. path
+              return string.format("dotnet run --project %s %s", path, args)
             end,
             test = function()
-              return "dotnet test " .. path
+              return string.format("dotnet test %s %s", path, args)
             end,
             restore = function()
-              return "dotnet restore --configfile " .. os.getenv("NUGET_CONFIG") .. " " .. path
+              return string.format("dotnet restore %s %s", path, args)
             end,
             build = function()
-              return "dotnet build  " .. path .. " /flp:v=q /flp:logfile=" .. logPath
+              return string.format("dotnet build %s %s /flp:v=q /flp:logfile=%s", path, args, get_log_path())
+            end,
+            watch = function()
+              return string.format("dotnet watch --project %s %s", path, args)
             end,
           }
+
+          local command = commands[action]() .. "\r"
+          require("toggleterm").exec(command, nil, nil, nil, "float")
         end,
+        secrets = {
+          path = get_secret_path,
+        },
         picker = "snacks",
       })
     end,
@@ -60,6 +83,7 @@ return {
       local function rebuild_project(co, path)
         local spinner = require("easy-dotnet.ui-modules.spinner").new()
         spinner:start_spinner("Building")
+        vim.notify(string.format("dotnet build %s", path), "info")
         vim.fn.jobstart(string.format("dotnet build %s", path), {
           on_exit = function(_, return_code)
             if return_code == 0 then
@@ -74,7 +98,7 @@ return {
         coroutine.yield()
       end
 
-      for _, lang in ipairs({ "cs", "fsharp", "vb" }) do
+      for _, lang in ipairs({ "cs", "fsharp", "vb", "razor" }) do
         dap.configurations[lang] = {
           {
             type = "coreclr",
@@ -112,7 +136,6 @@ return {
             processId = function()
               return require("dap.utils").pick_process()
             end,
-            stopOnEntry = true,
           },
         }
         dap.listeners.before["event_terminated"]["easy-dotnet"] = function()
