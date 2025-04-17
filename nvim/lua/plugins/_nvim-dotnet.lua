@@ -1,3 +1,13 @@
+local function get_build_command(path, args)
+  local log_path = ""
+  if require("easy-dotnet.extensions").isWindows() then
+    log_path = vim.fn.stdpath("data") .. "\\easy-dotnet\\build.log"
+  else
+    log_path = vim.fn.stdpath("data") .. "/easy-dotnet/build.log"
+  end
+  return string.format("dotnet build %s %s /flp:v=q /flp:logfile=%s", path, args, log_path)
+end
+
 return {
   {
     "GustavEikaas/easy-dotnet.nvim",
@@ -8,13 +18,6 @@ return {
           return vim.fn.expand("~") .. "\\AppData\\Roaming\\Microsoft\\UserSecrets\\" .. secret_guid .. "\\secrets.json"
         else
           return vim.fn.expand("~") .. "/.microsoft/usersecrets/" .. secret_guid .. "/secrets.json"
-        end
-      end
-      local function get_log_path()
-        if require("easy-dotnet.extensions").isWindows() then
-          return vim.fn.stdpath("data") .. "\\easy-dotnet\\build.log"
-        else
-          return vim.fn.stdpath("data") .. "/easy-dotnet/build.log"
         end
       end
       local dotnet = require("easy-dotnet")
@@ -32,7 +35,7 @@ return {
               return string.format("dotnet restore %s %s", path, args)
             end,
             build = function()
-              return string.format("dotnet build %s %s /flp:v=q /flp:logfile=%s", path, args, get_log_path())
+              return get_build_command(path, args)
             end,
             watch = function()
               return string.format("dotnet watch --project %s %s", path, args)
@@ -61,30 +64,53 @@ return {
     opts = function()
       local dap = require("dap")
       if not dap.adapters["netcoredbg"] then
-        require("dap").adapters["netcoredbg"] = {
+        dap.adapters["netcoredbg"] = {
           type = "executable",
           command = vim.fn.exepath("netcoredbg"),
           args = { "--interpreter=vscode" },
           -- console = "internalConsole",
         }
       end
-
       local dotnet = require("easy-dotnet")
+      local function get_debug_dll()
+        return coroutine.create(function(dap_run_co)
+          local items =
+            vim.fn.globpath(dotnet.try_get_selected_solution().path, "**\\bin\\**\\Debug\\**\\*.dll", false, true)
+          local opts = {
+            format_item = function(path)
+              return vim.fn.fnamemodify(path, ":t")
+            end,
+          }
+          local function cont(choice)
+            if choice == nil then
+              return nil
+            else
+              coroutine.resume(dap_run_co, choice)
+            end
+          end
+
+          vim.ui.select(items, opts, cont)
+        end)
+      end
+
       local debug_dll = nil
-      local function ensure_dll()
+      local function ensure_dll(path_from_sln)
         if debug_dll ~= nil then
           return debug_dll
         end
-        local dll = dotnet.get_debug_dll()
-        debug_dll = dll
-        return dll
+        if path_from_sln == true then
+          debug_dll = dotnet.get_debug_dll()
+        else
+          debug_dll = get_debug_dll()
+        end
+        return debug_dll
       end
 
       local function rebuild_project(co, path)
         local spinner = require("easy-dotnet.ui-modules.spinner").new()
         spinner:start_spinner("Building")
-        vim.notify(string.format("dotnet build %s", path), "info")
-        vim.fn.jobstart(string.format("dotnet build %s", path), {
+        vim.notify(get_build_command(path, nil), "info")
+        vim.fn.jobstart(get_build_command(path, nil), {
           on_exit = function(_, return_code)
             if return_code == 0 then
               spinner:stop_spinner("Built successfully")
@@ -105,18 +131,38 @@ return {
             name = "build & debug - netcoredbg",
             request = "launch",
             env = function()
-              local dll = ensure_dll()
+              local dll = ensure_dll(true)
               local vars = dotnet.get_environment_variables(dll.project_name, dll.relative_project_path)
               return vars or nil
             end,
             program = function()
-              local dll = ensure_dll()
+              local dll = ensure_dll(true)
               local co = coroutine.running()
               rebuild_project(co, dll.project_path)
               return dll.relative_dll_path
             end,
             cwd = function()
-              local dll = ensure_dll()
+              local dll = ensure_dll(true)
+              return dll.relative_project_path
+            end,
+          },
+          {
+            type = "coreclr",
+            name = "custom - build & debug - netcoredbg",
+            request = "launch",
+            env = function()
+              local dll = ensure_dll(false)
+              local vars = dotnet.get_environment_variables(dll.project_name, dll.relative_project_path)
+              return vars or nil
+            end,
+            program = function()
+              local dll = ensure_dll(false)
+              local co = coroutine.running()
+              rebuild_project(co, dll.project_path)
+              return dll.relative_dll_path
+            end,
+            cwd = function()
+              local dll = ensure_dll(false)
               return dll.relative_project_path
             end,
           },
