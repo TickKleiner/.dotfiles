@@ -5,6 +5,30 @@
 local map = vim.keymap.set
 local del = vim.keymap.del
 
+-- For conciseness
+local opts = { noremap = true, silent = true }
+
+-- delete single character without copying into register
+map("n", "x", '"_x', opts)
+
+-- -- Keep last yanked
+-- map({ "n", "v" }, "<leader>d", '"_d', opts)
+-- map({ "n", "v" }, "<leader>c", '"_c', opts)
+-- map({ "x" }, "<leader>p", '"_dP', opts)
+
+-- Vertical scroll and center
+map("n", "<C-d>", "<C-d>zz", opts)
+map("n", "<C-u>", "<C-u>zz", opts)
+
+-- Find and center
+map("n", "n", "nzzzv", opts)
+map("n", "N", "Nzzzv", opts)
+
+-- quit file
+map("n", "<C-q>", function()
+  Snacks.bufdelete()
+end)
+
 -- del resize window using <ctrl> arrow keys
 del("n", "<C-Up>")
 del("n", "<C-Down>")
