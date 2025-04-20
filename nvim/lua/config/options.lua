@@ -15,8 +15,8 @@ if vim.g.neovide then
   vim.g.neovide_light_angle_degrees = 45
   vim.g.neovide_light_radius = 5
 
-  -- vim.g.neovide_opacity = 0.8
-  -- vim.g.neovide_normal_opacity = 0.8
+  vim.g.neovide_opacity = 0.8
+  vim.g.neovide_normal_opacity = 0.8
   vim.g.neovide_hide_mouse_when_typing = true
   vim.g.neovide_cursor_animate_in_insert_mode = true
 
